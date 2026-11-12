@@ -1,0 +1,13 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ai-coverage-sample"
+version = "0.1.0"
+description = "Intentionally under-tested Python and JavaScript examples for Coverage Lab."
+requires-python = ">=3.11"
+license = "MIT"
+
+[tool.setuptools]
+py-modules = ["invoice"]

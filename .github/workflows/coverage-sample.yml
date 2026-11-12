@@ -1,0 +1,43 @@
+name: Coverage sample tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: ai-coverage-sample
+
+jobs:
+  python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install coverage
+      - run: python -m coverage run --branch --source=invoice -m unittest discover -s tests -v
+      - run: python -m coverage report
+      - run: python -m coverage xml
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sample-python-coverage
+          path: ai-coverage-sample/coverage.xml
+  javascript:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm run coverage
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sample-javascript-coverage
+          path: ai-coverage-sample/coverage/lcov.info

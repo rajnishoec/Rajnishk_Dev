@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Coverage Lab | Measured code. Smarter tests.</title>
+  <style>
+    :root{font:15px/1.6 system-ui,sans-serif;color:#e5edf7;background:#0b1120;--muted:#a2b3c9;--panel:#121d30;--edge:#2a3a52;--accent:#69e0b3}
+    *{box-sizing:border-box}body{margin:0}main{max-width:1180px;margin:auto;padding:36px 24px 70px}
+    header{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--edge);padding-bottom:22px}
+    .brand{font-weight:750;letter-spacing:-.03em;font-size:23px}.brand span{color:var(--accent)}.badge{border:1px solid var(--edge);border-radius:24px;padding:4px 12px;color:var(--muted);font-size:12px}
+    .hero{margin:48px 0 30px}.eyebrow{font-size:12px;letter-spacing:.16em;color:var(--accent);font-weight:700}h1{font-size:clamp(34px,6vw,58px);letter-spacing:-.045em;line-height:1.12;max-width:780px;margin:12px 0 18px}
+    p{color:var(--muted);max-width:750px}h2{font-size:18px;margin:0 0 16px}.upload{border:1px dashed #516580;border-radius:16px;background:var(--panel);padding:28px;display:grid;grid-template-columns:1fr auto;gap:22px;align-items:center}
+    label{display:block;color:var(--muted)}input[type=file]{max-width:100%;margin:12px 0;color:var(--muted)}input[type=checkbox]{accent-color:var(--accent);margin-right:8px}button{border:0;border-radius:9px;padding:12px 20px;background:var(--accent);color:#08251c;font:inherit;font-weight:700;cursor:pointer}button:disabled{opacity:.5;cursor:wait}button.secondary{color:#dbe7f8;background:#253750;font-size:13px;padding:8px 14px}
+    :focus-visible{outline:3px solid #85baff;outline-offset:3px}.hint{font-size:12px;color:var(--muted);margin:8px 0}#error{border:1px solid #ed8a8a;background:#3a1c25;padding:16px;border-radius:10px;color:#ffcbcb;margin-top:20px}
+    .topline{display:flex;align-items:center;justify-content:space-between;margin:32px 0 18px;gap:12px}.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.card{background:var(--panel);border:1px solid var(--edge);border-radius:14px;padding:22px}.label{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}.value{font-size:38px;letter-spacing:-.04em;font-weight:700;margin:4px 0}.value small{font-size:17px;color:var(--muted)}
+    progress{width:100%;height:8px;accent-color:var(--accent);display:block;margin:16px 0 8px}.grid{display:grid;grid-template-columns:1.6fr 1fr;gap:18px;margin-top:20px}.section{background:var(--panel);border:1px solid var(--edge);border-radius:14px;padding:22px;min-width:0}
+    .table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;font-size:13px;text-align:left}th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}td,th{padding:12px 8px;border-bottom:1px solid var(--edge)}td:first-child{word-break:break-all;min-width:170px}.gap{border-left:3px solid #efbc6a;margin:15px 0;padding:2px 0 2px 13px}.gap strong{display:block;overflow-wrap:anywhere}.gap p{font-size:13px;margin:5px 0}.tag{font-size:11px;color:#efbc6a;text-transform:uppercase}.foot{margin-top:24px;font-size:12px;color:var(--muted)}code{color:#b4cfed;background:#1a2a42;border-radius:4px;padding:2px 5px}#ai-panel{margin-top:20px}#status{min-height:24px;margin-top:12px;color:var(--accent)}[hidden]{display:none!important}
+    @media(max-width:760px){.cards,.grid,.upload{grid-template-columns:1fr}.hero{margin-top:32px}.badge{display:none}.value{font-size:32px}.upload button{width:100%}}
+  </style>
+</head>
+<body>
+<main>
+  <header><div class="brand">coverage<span>lab</span> <span aria-hidden="true">/</span></div><div class="badge">LOCAL FIRST / REAL TEST DATA</div></header>
+  <section class="hero"><div class="eyebrow">KNOW WHAT YOUR TESTS MISS</div><h1>Measured code.<br>Smarter next tests.</h1><p>Bring a coverage report from any toolchain. See the uncovered lines, prioritize the gaps, and optionally ask AI for concrete test scenarios grounded in your results.</p></section>
+  <form id="form" class="upload">
+    <div><h2>Start with evidence</h2><label for="file">LCOV, Cobertura XML, coverage.py JSON, or Coverage Lab JSON</label><input id="file" type="file" accept=".info,.lcov,.xml,.json" required>
+    <label><input type="checkbox" id="ai">Add AI test recommendations</label><div class="hint">AI sends file paths, coverage counts, and gap line numbers to your configured provider. Source code is not sent by this dashboard.</div></div>
+    <button id="submit" type="submit">Analyze coverage &rarr;</button>
+  </form>
+  <div id="status" role="status" aria-live="polite"></div><div id="error" role="alert" hidden></div>
+  <section id="results" hidden aria-label="Coverage results">
+    <div class="topline"><h2 id="report-title">Coverage overview</h2><button class="secondary" id="download" type="button">Download JSON</button></div>
+    <div class="cards">
+      <article class="card"><div class="label">Line coverage</div><div class="value" id="line-value"></div><progress id="line-bar" max="100" aria-label="Line coverage"></progress><div class="hint" id="line-detail"></div></article>
+      <article class="card"><div class="label">Branch coverage</div><div class="value" id="branch-value"></div><progress id="branch-bar" max="100" aria-label="Branch coverage"></progress><div class="hint" id="branch-detail"></div></article>
+      <article class="card"><div class="label">Measured source files</div><div class="value" id="file-value"></div><div class="hint" id="gap-value"></div><div class="hint">Files outside the runner's scope are not counted.</div></article>
+    </div>
+    <div class="grid">
+      <section class="section"><h2>File breakdown</h2><div class="table-wrap"><table><thead><tr><th scope="col">Source file</th><th scope="col">Lines</th><th scope="col">Branches</th><th scope="col">Missing</th></tr></thead><tbody id="file-rows"></tbody></table></div></section>
+      <section class="section"><h2>Where to test next</h2><div class="hint">Deterministic ranking by uncovered lines, then partial branches. This is not an AI risk score.</div><div id="priorities"></div></section>
+    </div>
+    <section class="section" id="ai-panel" hidden><div class="eyebrow">AI / UNVERIFIED SUGGESTIONS</div><h2>Turn gaps into test scenarios</h2><p id="ai-summary"></p><div id="ai-items"></div><p class="hint">Recommendations are not generated tests or proof of correctness. Review, implement, and rerun your suite to verify any improvement.</p></section>
+    <p class="foot" id="limitations"></p>
+  </section>
+  <p class="foot">No report yet? Run <code>coverage-lab run YOUR_REPO --output report.json</code> in your terminal, then upload the result. Tests execute locally only when you explicitly run the CLI. Keys stay in server environment variables.</p>
+</main>
+<script>
+  const token = "__CSRF_TOKEN__";
+  const $ = (id) => document.getElementById(id);
+  let latest = null;
+  const percent = (number) => number === null ? "N/A" : `${number.toFixed(1)}%`;
+  const element = (tag, text, className) => {const node = document.createElement(tag); node.textContent = text; if(className) node.className = className; return node;};
+  function metric(kind) {
+    const data = latest.totals[kind === "line" ? "lines" : "branches"];
+    $(kind + "-value").textContent = percent(data.percent);
+    $(kind + "-bar").value = data.percent ?? 0;
+    $(kind + "-bar").hidden = data.percent === null;
+    $(kind + "-detail").textContent = data.total ? `${data.covered} of ${data.total} covered` : "Not reported by the coverage tool.";
+  }
+  function render() {
+    metric("line"); metric("branch");
+    $("report-title").textContent = `Coverage overview / ${latest.format}`;
+    $("file-value").textContent = latest.files.length;
+    $("gap-value").textContent = `${latest.totals.lines.total - latest.totals.lines.covered} executable lines remain uncovered.`;
+    $("file-rows").replaceChildren();
+    for(const file of latest.files) {
+      const row = element("tr", "");
+      for(const value of [file.path, percent(file.lines.percent), percent(file.branches.percent), file.missing_lines.length]) row.append(element("td", String(value)));
+      $("file-rows").append(row);
+    }
+    $("priorities").replaceChildren();
+    if(!latest.priorities.length) $("priorities").append(element("p", "No measured gaps in the supplied report."));
+    for(const gap of latest.priorities) {
+      const card = element("article", "", "gap");
+      card.append(element("strong", gap.path));
+      card.append(element("p", `Uncovered lines: ${gap.missing_lines.slice(0, 30).join(", ") || "none"}`));
+      if(gap.partial_branch_lines.length) card.append(element("p", `Partial branches at: ${gap.partial_branch_lines.join(", ")}`));
+      $("priorities").append(card);
+    }
+    $("ai-panel").hidden = !latest.ai;
+    $("ai-items").replaceChildren();
+    if(latest.ai) {
+      $("ai-summary").textContent = latest.ai.summary;
+      for(const item of latest.ai.recommendations) {
+        const card = element("article", "", "gap");
+        card.append(element("span", `${item.priority} priority`, "tag"), element("strong", `${item.path} / lines ${item.lines.join(", ")}`), element("p", item.reason), element("p", item.test_idea));
+        $("ai-items").append(card);
+      }
+    }
+    $("limitations").textContent = latest.limitations.join(" ");
+    $("results").hidden = false;
+  }
+  $("form").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    $("error").hidden = true; $("results").hidden = true; $("submit").disabled = true;
+    $("status").textContent = $("ai").checked ? "Parsing measured coverage and requesting AI recommendations..." : "Parsing measured coverage...";
+    try {
+      const file = $("file").files[0];
+      if(!file || file.size > 25 * 1024 * 1024) throw new Error("Choose a report no larger than 25 MiB.");
+      const response = await fetch(`/api/report?ai=${$("ai").checked}`, {method:"POST", headers:{"X-Coverage-Token":token, "Content-Type":"text/plain; charset=utf-8"}, body:await file.text()});
+      const data = await response.json();
+      if(!response.ok) throw new Error(data.error || "Analysis failed.");
+      latest = data; render(); $("status").textContent = "Coverage report analyzed. All metrics are derived from uploaded evidence.";
+    } catch(error) {
+      $("status").textContent = ""; $("error").textContent = error.message; $("error").hidden = false;
+    } finally { $("submit").disabled = false; }
+  });
+  $("download").addEventListener("click", () => {
+    const url = URL.createObjectURL(new Blob([JSON.stringify(latest, null, 2)], {type:"application/json"}));
+    const link = document.createElement("a"); link.href = url; link.download = "coverage-lab-report.json"; link.click(); URL.revokeObjectURL(url);
+  });
+</script>
+</body>
+</html>
