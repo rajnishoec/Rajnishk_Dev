@@ -116,6 +116,15 @@ class ReportTests(unittest.TestCase):
             with self.assertRaises(CoverageError):
                 file.add_branches(*values)
 
+    def test_repository_relative_paths_use_canonical_native_paths(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "src").mkdir()
+            source = root / "src" / ".." / "app.py"
+            self.assertEqual(display_path(source.as_posix(), root), "app.py")
+            outside = root.parent / "other-repo" / "app.py"
+            self.assertEqual(display_path(outside.as_posix(), root), outside.as_posix())
+
     def test_priorities_rank_largest_measured_gaps(self):
         report = parse_report(LCOV + "SF:other.py\nDA:1,0\nDA:2,0\nend_of_record").to_dict()
         self.assertEqual(prioritize(report, 1)[0]["path"], "other.py")

@@ -16,10 +16,11 @@ def display_path(value: str, root: Path | None) -> str:
     value = value.strip().replace("\\", "/")
     if not value:
         raise CoverageError("Coverage file has an empty source path.")
-    if root is not None:
-        root_text = root.resolve().as_posix().rstrip("/")
-        if value.startswith(root_text + "/"):
-            return value[len(root_text) + 1 :]
+    if root is not None and Path(value).is_absolute():
+        try:
+            return Path(value).resolve().relative_to(root.resolve()).as_posix()
+        except ValueError:
+            pass
     return str(PurePosixPath(value))
 
 
